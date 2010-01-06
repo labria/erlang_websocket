@@ -56,6 +56,8 @@ init([]) ->
     WebSocket = {basic_websocket,
 		 {basic_websocket,start,[WebSocketConfig]},
 		 permanent,5000,worker,dynamic},
-
-    Processes = [WebSocket],
+    MainDispatcher = {main_dispatcher,
+      {main_dispatcher, start, []},
+        permanent, 5000, worker, dynamic},
+    Processes = [WebSocket, MainDispatcher],
     {ok, {{one_for_one, 10, 10}, Processes}}.
