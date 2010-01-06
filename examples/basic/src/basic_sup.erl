@@ -42,14 +42,14 @@ upgrade() ->
 %% @doc supervisor callback.
 init([]) ->
     Ip = case os:getenv("MOCHIWEB_IP") of false -> "0.0.0.0"; Any -> Any end,   
-    WebConfig = [
-		 {ip, Ip},
-                 {port, 8000},
-                 {docroot, basic_deps:local_path(["priv", "www"])}],
+    %%WebConfig = [
+%%		 {ip, Ip},
+  %%               {port, 8000},
+    %%             {docroot, basic_deps:local_path(["priv", "www"])}],
     %% This is the normal webserver
-    Web = {basic_web,
-           {basic_web, start, [WebConfig]},
-           permanent, 5000, worker, dynamic},
+    %% Web = {basic_web,
+    %%       {basic_web, start, [WebConfig]},
+    %%       permanent, 5000, worker, dynamic},
 
     %% Setup the websocket server using port
     WebSocketConfig = [{ip,Ip},{port,8002}],
@@ -57,5 +57,5 @@ init([]) ->
 		 {basic_websocket,start,[WebSocketConfig]},
 		 permanent,5000,worker,dynamic},
 
-    Processes = [Web,WebSocket],
+    Processes = [WebSocket],
     {ok, {{one_for_one, 10, 10}, Processes}}.

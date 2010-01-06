@@ -78,7 +78,8 @@ check_header(Socket,Path,Headers,MyLoop) ->
 	    verify_handshake(Socket,Path,Headers),
 	    %% Set packet back to raw for the rest of the connection
             inet:setopts(Socket, [{packet, raw}]),
-            request(Socket,MyLoop);
+            WriterPid = basic_writer:start(Socket),
+            request(Socket,WriterPid,MyLoop);
         {ok, {http_header, _, Name, _, Value}} ->
             check_header(Socket, Path, [{Name, Value} | Headers],MyLoop);
         _Other ->
@@ -106,7 +107,7 @@ send_handshake(Socket,Path,Headers) ->
 	"WebSocket-Location: ws://" ++ Location ++ Path ++ "\r\n\r\n",
     gen_tcp:send(Socket, Resp).
 
-request(Socket, MyLoop) ->
+request(Socket, Writer, MyLoop) ->
     WebSocketRequest = websocket_request:new(Socket),
-    MyLoop(WebSocketRequest),
-    request(Socket,MyLoop).
+    MyLoop({WebSocketRequest, Writer}),
+    request(Socket,Writer ,MyLoop).

@@ -16,8 +16,9 @@ stop() ->
     mochiweb_websocket:stop(?MODULE).
 
 
-loop(WebSocket) ->
+loop(State) ->
     %% Get the data sent from the client
+    {WebSocket, {ok, Writer}} = State,
     Data = WebSocket:get_data(),
     
     %% Our example...
@@ -27,6 +28,7 @@ loop(WebSocket) ->
 	    WebSocket:send("You are connected!");
 	%% Other messages go here
 	Other ->
+            gen_server:cast(Writer, got_message),
 	    Msg = "You Said: " ++ Other,
 	    WebSocket:send(Msg)
     end.
