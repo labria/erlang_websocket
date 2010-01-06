@@ -3,7 +3,9 @@
  
 -behaviour(gen_server).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
- 
+-record(st,
+  {sock,
+  room}).
 %% Public API
  
 start(Sock) ->
@@ -25,41 +27,52 @@ state() ->
  
 init([Sock]) ->
   say("init basic_writer", []),
-  {ok, [Sock]}.
+  {ok, #st{sock = Sock}}.
  
  
-handle_call(stop, _From, State) ->
-  say("stopping by ~p, state was ~p.", [_From, State]),
-  {stop, normal, stopped, State};
+handle_call(stop, _From, St) ->
+  say("stopping by ~p, state was ~p.", [_From, St]),
+  {stop, normal, stopped, St};
  
-handle_call(state, _From, State) ->
+handle_call(state, _From, St) ->
   say("~p is asking for the state.", [_From]),
-  {reply, State, State};
+  {reply, St, St};
  
-handle_call(_Request, _From, State) ->
-  say("call ~p, ~p, ~p.", [_Request, _From, State]),
-  {reply, ok, State}.
+handle_call(_Request, _From, St) ->
+  say("call ~p, ~p, ~p.", [_Request, _From, St]),
+  {reply, ok, St}.
+ 
+handle_cast({set_room_pid, Pid}, St) ->
+  {noreply, St#st{room = Pid}};
+
+handle_cast({message, Data}, St) ->
+  St#st.room ! {say, Data},
+  % send_message(St#st.sock, "you said " ++ Data),
+  {noreply, St}; 
+
+handle_cast({join, {Room}}, St) ->
+  main_dispatcher ! {register, self(), Room},
+  % send_message(St#st.sock, "you joined the room " ++ Data),
+  {noreply, St};
+
+handle_cast(leave, St) ->
+  St#st.room ! leave,
+  % send_message(St#st.sock, "you left"),
+  {noreply, St}.
+
+handle_info(_Info, St) ->
+  say("info ~p, ~p.", [_Info, St]),
+  {noreply, St}.
  
  
-handle_cast(_Msg, State) ->
-  say("cast ~p, ~p.", [_Msg, State]),
-  send_message(lists:last(State),"i heard that"),
-  {noreply, State}.
- 
- 
-handle_info(_Info, State) ->
-  say("info ~p, ~p.", [_Info, State]),
-  {noreply, State}.
- 
- 
-terminate(_Reason, _State) ->
-  say("terminate ~p, ~p", [_Reason, _State]),
+terminate(_Reason, _St) ->
+  say("terminate ~p, ~p", [_Reason, _St]),
   ok.
  
  
-code_change(_OldVsn, State, _Extra) ->
-  say("code_change ~p, ~p, ~p", [_OldVsn, State, _Extra]),
-  {ok, State}.
+code_change(_OldVsn, St, _Extra) ->
+  say("code_change ~p, ~p, ~p", [_OldVsn, St, _Extra]),
+  {ok, St}.
  
 %% Some helper methods.
  
