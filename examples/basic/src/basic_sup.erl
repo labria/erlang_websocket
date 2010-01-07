@@ -50,14 +50,18 @@ init([]) ->
     Web = {basic_web,
     {basic_web, start, [WebConfig]},
     permanent, 5000, worker, dynamic},
-
+    
+    FlashPolicyServer = {flash_policy_server,
+      {flash_policy_server, start_link, [843]},
+      permanent, 5000, worker, dynamic},
+    
     %% Setup the websocket server using port
     WebSocketConfig = [{ip,Ip},{port,8002}],
     WebSocket = {basic_websocket,
-		 {basic_websocket,start,[WebSocketConfig]},
-		 permanent,5000,worker,dynamic},
+      {basic_websocket,start,[WebSocketConfig]},
+      permanent,5000,worker,dynamic},
     MainDispatcher = {main_dispatcher,
       {main_dispatcher, start, []},
-        permanent, 5000, worker, dynamic},
-    Processes = [WebSocket, MainDispatcher,Web],
+      permanent, 5000, worker, dynamic},
+    Processes = [WebSocket, MainDispatcher,Web, FlashPolicyServer],
     {ok, {{one_for_one, 10, 10}, Processes}}.
