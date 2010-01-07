@@ -1,87 +1,70 @@
-<html>
-<head>
-  <title>Basic WebSocket Example</title>
+<!--
+  Copyright: Hiroshi Ichikawa <http://gimite.net/en/>
+  Lincense: New BSD Lincense
+-->
+
+<html><head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Sample of web_socket.js</title>
+  
+  <!-- Include these three JS files: -->
+  <script type="text/javascript" src="swfobject.js"></script>
+  <script type="text/javascript" src="FABridge.js"></script>
+  <script type="text/javascript" src="web_socket.js"></script>
+
   <script type="text/javascript">
-
-    // I adapted this code from a Jetty Server example.
-    if (!window.WebSocket)
-        alert("WebSocket not supported by this browser");
     
-    // Get an Element
-    function $() { return document.getElementById(arguments[0]); }
-    // Get the value of an Element
-    function $F() { return document.getElementById(arguments[0]).value; }
-    
-    var client = {
-       connect: function(){
-         this._ws=new WebSocket("ws://localhost:8002");
-         this._ws.onopen=this._onopen;
-         this._ws.onmessage=this._onmessage;
-         this._ws.onclose=this._onclose;
-       },
-    
-       _onopen: function(){
-          $('connect').className='hidden';
-          $('connected').className='';
-          $('phrase').focus();
-          client._send('client-connected');
-       },
+    // Set URL of your WebSocketMain.swf here:
+    WebSocket.__swfLocation = "WebSocketMain.swf";
 
-       _send: function(message){
-           if (this._ws)
-            this._ws.send(message);
-        },
-       
-       chat: function(text) {
-          if (text != null && text.length>0 )
-            client._send(text);
-        },
-        
-        _onmessage: function(m) {
-          if (m.data){
-            var text = m.data; 
-            var msg=$('msgs');
-            var spanText = document.createElement('span');
-            spanText.className='text';
-            spanText.innerHTML=text;
-            var lineBreak = document.createElement('br');
-            msg.appendChild(spanText);
-            msg.appendChild(lineBreak);
-            msg.scrollTop = msg.scrollHeight - msg.clientHeight;   
-          }
-        },
-        
-        _onclose: function(m) {
-          this._ws=null;
-          $('connect').className='';
-          $('connected').className='hidden';
-          $('msg').innerHTML='';
-        }
+    var ws;
+    
+    function init() {
 
-       
-    };
+      // Connect to Web Socket.
+      // Change host/port here to your own Web Socket server.
+      ws = new WebSocket("ws://localhost:8002/");
+
+      // Set event handlers.
+      ws.onopen = function() {
+        output("onopen");
+      };
+      ws.onmessage = function(e) {
+        // e.data contains received string.
+        output("onmessage: " + e.data);
+      };
+      ws.onclose = function() {
+        output("onclose");
+      };
+
+    }
+    
+    function onSubmit() {
+      var input = document.getElementById("input");
+      // You can send message to the Web Socket using ws.send.
+      ws.send(input.value);
+      output("send: " + input.value);
+      input.value = "";
+      input.focus();
+    }
+    
+    function onCloseClick() {
+      ws.close();
+    }
+    
+    function output(str) {
+      var log = document.getElementById("log");
+      var escaped = str.replace(/&/, "&amp;").replace(/</, "&lt;").
+        replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
+      log.innerHTML = escaped + "<br>" + log.innerHTML;
+    }
+
   </script>
-  <style type='text/css'>
-    div.hidden { display: none; }
-  </style>
-
-</head>
-<body>
-  <h1>Basic Echo Example</h1>
-  <div id="msgs"></div>
-  <div id="connect">
-     <input id='cA' class='button' type='submit' name='connect' value='Connect'/>
-  </div>
-  <br/>
-  <div id="connected" class="hidden">
-    Say Something:&nbsp;<input id='phrase' type='text'/>
-    <input id='sendB' class='button' type='submit' name='connect' value='Send'/>
-  </div>
-
-  <script type='text/javascript'>
-    $('cA').onclick = function(event) { client.connect(); return false; };
-    $('sendB').onclick = function(event) { client.chat($F('phrase')); $('phrase').value=''; return false; };	
- </script>
-  </body>
-</html>
-
+</head><body onload="init();">
+  <form onsubmit="onSubmit(); return false;">
+    <input type="text" id="input">
+    <input type="submit" value="Send">
+    <button onclick="onCloseClick(); return false;">close</button>
+  </form>
+  <div id="log"></div>
+</body></html>
