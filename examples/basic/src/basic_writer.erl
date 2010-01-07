@@ -43,13 +43,13 @@ handle_call(_Request, _From, St) ->
   {reply, ok, St}.
  
 handle_cast({set_room_pid, Pid}, St) ->
-  gen_server:cast(Pid, {join, self()}),
+  % gen_server:cast(Pid, {join, self()}),
   {noreply, St#st{room = Pid}};
 
-handle_cast({join, Room}, St) ->
-  gen_server:cast(main_dispatcher, {register, self(), Room}),
-  % send_message(St#st.sock, "you joined the room " ++ Data),
-  {noreply, St};
+%handle_cast({join, Room}, St) ->
+%  gen_server:cast(main_dispatcher, {register, self(), Room}),
+%  send_message(St#st.sock, "you joined the room " ++ Data),
+%  {noreply, St};
 
 handle_cast({message, Data}, St) ->
   gen_server:cast(St#st.room, {say, self(), Data}),

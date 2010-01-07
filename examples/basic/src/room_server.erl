@@ -7,7 +7,7 @@
 %% Public API
 -record(st,
   {name,
-  clients=[]}).
+  users}).
 
 
 start(Name) ->
@@ -29,7 +29,8 @@ state() ->
  
 init(Name) ->
   say("init", []),
-  {ok, #st{name=Name}}.
+  Tab = ets:new(?MODULE, []),
+  {ok, #st{name=Name, users=Tab}}.
  
  
 handle_call(stop, _From, St) ->
@@ -45,14 +46,17 @@ handle_call(_Request, _From, St) ->
   {reply, ok, St}.
  
 
-handle_cast({join, Pid}, St) ->
-  say("~p is joining the room.", [Pid]),
-  Clients = [Pid|St#st.clients],
-  {noreply, St#st{clients=Clients}};
+handle_cast({join, Pid, Nickname}, St) ->
+  say("~p (~p) is joining the room.", [Nickname, Pid]),
+  ets:insert(St#st.users, {Pid, Nickname}),
+  % Clients = [Pid|St#st.clients],
+  {noreply, St};
 
 handle_cast({say, Pid, Msg}, St) ->
-  Fun = fun(Client) -> send_message(Client, Msg) end,
-  lists:foreach(Fun, St#st.clients),
+  [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
+  Fun = fun({Client, _}, _) -> send_message(Client, Nick ++ " : "++ Msg), void end,
+  ets:foldl(Fun, [], St#st.users),
+  % lists:foreach(Fun, St#st.clients),
   {noreply, St};
 
 

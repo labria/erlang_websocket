@@ -26,7 +26,9 @@ loop(State) ->
   case Data of
     %% Join room
     "join " ++ MsgData ->
-      gen_server:cast(Writer, {join, MsgData});
+      [Room,Nick] = string:tokens(MsgData, " "),
+      gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
+      % gen_server:cast(Writer, {join, Room, Nick});
     %% Leave room
     "leave" ->
       gen_server:cast(Writer, leave);
