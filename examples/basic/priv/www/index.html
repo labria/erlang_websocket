@@ -27,14 +27,16 @@
 
       // Set event handlers.
       ws.onopen = function() {
-        output("onopen");
+        nick = prompt("nickname?");
+        ws.send("/join default " +nick);
+        output("joined default room");
       };
       ws.onmessage = function(e) {
         // e.data contains received string.
-        output("onmessage: " + e.data);
+        output(e.data);
       };
       ws.onclose = function() {
-        output("onclose");
+        output("Socket closed");
       };
 
     }
@@ -43,7 +45,7 @@
       var input = document.getElementById("input");
       // You can send message to the Web Socket using ws.send.
       ws.send(input.value);
-      output("send: " + input.value);
+      // output("send: " + input.value);
       input.value = "";
       input.focus();
     }

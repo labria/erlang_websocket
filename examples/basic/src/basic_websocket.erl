@@ -25,13 +25,14 @@ loop(State) ->
   %% Our example...
   case Data of
     %% Join room
-    "join " ++ MsgData ->
+    "/join " ++ MsgData ->
       [Room,Nick] = string:tokens(MsgData, " "),
       gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
       % gen_server:cast(Writer, {join, Room, Nick});
     %% Leave room
-    "leave" ->
-      gen_server:cast(Writer, leave);
+    "/leave" ->
+      gen_server:cast(Writer, leave),
+      exit(normal);
     %% Other messages go here 
     Other ->
       gen_server:cast(Writer, {message, Other})
