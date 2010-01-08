@@ -52,6 +52,15 @@ handle_cast({join, Pid, Nickname}, St) ->
   % Clients = [Pid|St#st.clients],
   {noreply, St};
 
+handle_cast({leave, Pid}, St) ->
+  [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
+  ets:delete(St#st.users, Pid),
+  say("~p (~p) is leaving the room.", [Nick, Pid]),
+  Fun = fun({Client, _}, _) -> send_message(Client, Nick ++ " left the room"), void end,
+  ets:foldl(Fun, [], St#st.users),
+  {noreply, St};
+
+
 handle_cast({say, Pid, Msg}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
   Fun = fun({Client, _}, _) -> send_message(Client, Nick ++ " : "++ Msg), void end,
