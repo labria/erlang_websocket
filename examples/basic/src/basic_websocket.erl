@@ -33,6 +33,9 @@ loop(State) ->
     "/leave" ->
       gen_server:cast(Writer, leave),
       exit(normal);
+    closed ->
+      gen_server:cast(Writer, leave),
+      exit(normal);
     %% Other messages go here 
     Other ->
       gen_server:cast(Writer, {message, Other})

@@ -36,7 +36,6 @@
         output(e.data);
       };
       ws.onclose = function() {
-        ws.send("/leave");
         output("Socket closed");
       };
 

@@ -15,8 +15,8 @@ get_data() ->
     case gen_tcp:recv(Socket, 0) of
 	{ok,Data} ->
 	    unframe(binary_to_list(Data));
-        _Other ->
-	    exit(normal)
+        {error, closed} ->
+	    closed
     end.
 
 %% Send the data to the client. Format it in the WebSocket format
