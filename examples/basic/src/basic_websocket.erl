@@ -6,6 +6,10 @@
 
 -export([start/1, stop/0, loop/1]).
 
+-record(st,
+  {sock,
+  room}).
+
 start(Options) ->
   Loop = fun (WebSocket) ->
       ?MODULE:loop(WebSocket)
@@ -26,9 +30,18 @@ loop(State) ->
   case Data of
     %% Join room
     "/join " ++ MsgData ->
-      [Room,Nick] = string:tokens(MsgData, " "),
-      gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
-      % gen_server:cast(Writer, {join, Room, Nick});
+      WriterState = gen_server:call(Writer, state),
+      case  WriterState#st.room of
+        undefined ->
+          case string:tokens(MsgData, " ") of
+            [Room,Nick] -> 
+              gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
+            _ ->
+              gen_server:cast(Writer, {send_to_client, "wrong join command format"})
+          end;
+        _ ->
+          gen_server:cast(Writer, {send_to_client, "you already joined a room"})
+      end;
     %% Leave room
     "/leave" ->
       gen_server:cast(Writer, leave),

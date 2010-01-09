@@ -15,7 +15,7 @@ get_data() ->
     case gen_tcp:recv(Socket, 0) of
 	{ok,Data} ->
 	    unframe(binary_to_list(Data));
-        {error, closed} ->
+        {error, _} ->
 	    closed
     end.
 
