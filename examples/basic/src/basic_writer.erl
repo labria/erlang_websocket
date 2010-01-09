@@ -8,8 +8,8 @@
   room}).
 %% Public API
  
-start(Sock) ->
-  gen_server:start(?MODULE, [Sock], []).
+start_link(Sock) ->
+  gen_server:start_link(?MODULE, [Sock], []).
  
 stop(Module) ->
   gen_server:call(Module, stop).
@@ -53,7 +53,6 @@ handle_cast({set_room_pid, Pid}, St) ->
 
 handle_cast({message, Data}, St) ->
   gen_server:cast(St#st.room, {say, self(), Data}),
-  % send_message(St#st.sock, "you said " ++ Data),
   {noreply, St};
 
 handle_cast({send_to_client, Data}, St) ->
@@ -62,8 +61,9 @@ handle_cast({send_to_client, Data}, St) ->
 
 handle_cast(leave, St) ->
   gen_server:cast(St#st.room, {leave, self()}),
+  % exit(normal),
   % send_message(St#st.sock, "you left"),
-  {noreply, St}.
+  {stop,normal,St}.
 
 handle_info(_Info, St) ->
   say("info ~p, ~p.", [_Info, St]),
