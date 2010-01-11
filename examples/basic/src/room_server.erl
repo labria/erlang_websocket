@@ -45,6 +45,7 @@ handle_call(_Request, _From, St) ->
   say("call ~p, ~p, ~p.", [_Request, _From, St]),
   {reply, ok, St}.
 
+%% external functions
 
 join(Pid, ClientPid ,Nickname) ->
   gen_server:cast(Pid, {join, ClientPid, Nickname}). 
@@ -56,10 +57,11 @@ say(Pid, ClientPid, Msg) ->
   gen_server:cast(Pid, {say, ClientPid, Msg}).
 
 
+%% cast handling
+
 handle_cast({join, Pid, Nickname}, St) ->
   say("~p (~p) is joining the room.", [Nickname, Pid]),
   ets:insert(St#st.users, {Pid, Nickname}),
-  % Clients = [Pid|St#st.clients],
   {noreply, St};
 
 handle_cast({leave, Pid}, St) ->
@@ -75,7 +77,6 @@ handle_cast({say, Pid, Msg}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
   Fun = fun({Client, _}, _) -> client_writer:send_to_client(Client, Nick ++ " : "++ Msg), void end,
   ets:foldl(Fun, [], St#st.users),
-  % lists:foreach(Fun, St#st.clients),
   {noreply, St};
 
 

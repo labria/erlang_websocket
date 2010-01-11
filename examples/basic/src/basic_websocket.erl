@@ -36,7 +36,6 @@ loop(State) ->
           case string:tokens(MsgData, " ") of
             [Room,Nick] -> 
               main_dispatcher:register_user(Writer, Room, Nick);
-              % gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
             _ ->
               client_writer:send_to_client(Writer, "wrong join command format")
           end;
@@ -46,15 +45,12 @@ loop(State) ->
     %% Leave room
     "/leave" ->
       client_writer:leave(Writer),
-      % gen_server:cast(Writer, leave),
       exit(normal);
     closed ->
       client_writer:leave(Writer),
-      % gen_server:cast(Writer, leave),
       exit(normal);
     %% Other messages go here 
     Other ->
       client_writer:message(Writer, Other)
-      % gen_server:cast(Writer, {message, Other})
   end.
 

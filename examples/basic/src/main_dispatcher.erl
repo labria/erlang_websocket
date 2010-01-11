@@ -45,11 +45,8 @@ register_user(ClientPid, Room, Nick) ->
   gen_server:cast(main_dispatcher, {register_user, ClientPid, Room, Nick}).
 
 handle_cast({register_user, Pid, Room, Nick}, State) ->
-  % find or create room from ets
   RoomPid = find_or_create_room(Room, State),
-  % send it back to the client handler
   room_server:join(RoomPid, Pid, Nick),
-  % gen_server:cast(RoomPid, {join, Pid, Nick}),
   client_writer:set_room_pid(Pid, RoomPid),
   {noreply, State};
 

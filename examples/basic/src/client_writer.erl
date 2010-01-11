@@ -42,6 +42,8 @@ handle_call(_Request, _From, St) ->
   say("call ~p, ~p, ~p.", [_Request, _From, St]),
   {reply, ok, St}.
 
+%% external functions
+
 set_room_pid(Pid, RoomPid) ->
   gen_server:cast(Pid, {set_room_pid, RoomPid}).
 
@@ -54,14 +56,10 @@ send_to_client(Pid, Data) ->
 leave(Pid) ->
   gen_server:cast(Pid, leave).
   
-handle_cast({set_room_pid, Pid}, St) ->
-  % gen_server:cast(Pid, {join, self()}),
-  {noreply, St#st{room = Pid}};
+%% cast handling
 
-%handle_cast({join, Room}, St) ->
-%  gen_server:cast(main_dispatcher, {register, self(), Room}),
-%  send_message(St#st.sock, "you joined the room " ++ Data),
-%  {noreply, St};
+handle_cast({set_room_pid, Pid}, St) ->
+  {noreply, St#st{room = Pid}};
 
 handle_cast({message, Data}, St) ->
   room_server:say(St#st.room, self(), Data),
@@ -73,9 +71,6 @@ handle_cast({send_to_client, Data}, St) ->
 
 handle_cast(leave, St) ->
   room_server:leave(St#st.room, self()),
-  % gen_server:cast(St#st.room, {leave, self()}),
-  % exit(normal),
-  % send_message(St#st.sock, "you left"),
   {stop,normal,St}.
 
 handle_info(_Info, St) ->
