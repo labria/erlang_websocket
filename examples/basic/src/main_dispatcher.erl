@@ -41,7 +41,10 @@ handle_call(_Request, _From, State) ->
   say("call ~p, ~p, ~p.", [_Request, _From, State]),
   {reply, ok, State}.
 
-handle_cast({register, Pid, Room, Nick}, State) ->
+register_user(ClientPid, Room, Nick) ->
+  gen_server:cast(main_dispatcher, {register_user, ClientPid, Room, Nick}).
+
+handle_cast({register_user, Pid, Room, Nick}, State) ->
   % find or create room from ets
   RoomPid = find_or_create_room(Room, State),
   % send it back to the client handler

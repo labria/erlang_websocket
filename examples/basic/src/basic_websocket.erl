@@ -35,7 +35,8 @@ loop(State) ->
         undefined ->
           case string:tokens(MsgData, " ") of
             [Room,Nick] -> 
-              gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
+              main_dispatcher:register_user(Writer, Room, Nick);
+              % gen_server:cast(main_dispatcher, {register, Writer, Room, Nick});
             _ ->
               gen_server:cast(Writer, {send_to_client, "wrong join command format"})
           end;
