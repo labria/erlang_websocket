@@ -2,6 +2,8 @@ h2. Erlang WebSocket wrapper for "MochiWeb":http://code.google.com/p/mochiweb/
 
 This is a simple wrapper around the mochiweb_socket_server to allow "WebSocket":http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-66 connections.  With this wrapper, you can write WebSocket connection loops just like you'd write a normal mochiweb application. 
 
+This repo is forked from the Dave Bryson's one, but I'm working on allowing two-way communication with the client, with one process listening for data from the client, and another one sending data back, so you can send him messages without waiting for him to act.
+
 The chat server example is actually work in progress (and can be broken anytime), it will be released in a week or so, after a huge refactoring.
 
 h3. Requirements:
