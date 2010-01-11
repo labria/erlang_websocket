@@ -52,7 +52,7 @@ handle_cast({set_room_pid, Pid}, St) ->
 %  {noreply, St};
 
 handle_cast({message, Data}, St) ->
-  gen_server:cast(St#st.room, {say, self(), Data}),
+  room_server:say(St#st.room, self(), Data),
   {noreply, St};
 
 handle_cast({send_to_client, Data}, St) ->
@@ -60,7 +60,8 @@ handle_cast({send_to_client, Data}, St) ->
   {noreply, St};
 
 handle_cast(leave, St) ->
-  gen_server:cast(St#st.room, {leave, self()}),
+  room_server:leave(St#st.room, self()),
+  % gen_server:cast(St#st.room, {leave, self()}),
   % exit(normal),
   % send_message(St#st.sock, "you left"),
   {stop,normal,St}.

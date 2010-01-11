@@ -44,7 +44,17 @@ handle_call(state, _From, St) ->
 handle_call(_Request, _From, St) ->
   say("call ~p, ~p, ~p.", [_Request, _From, St]),
   {reply, ok, St}.
- 
+
+
+join(Pid, ClientPid ,Nickname) ->
+  gen_server:cast(Pid, {join, ClientPid, Nickname}). 
+
+leave(Pid, ClientPid) ->
+  gen_server:cast(Pid, {leave, ClientPid}).
+
+say(Pid, ClientPid, Msg) ->
+  gen_server:cast(Pid, {say, ClientPid, Msg}).
+
 
 handle_cast({join, Pid, Nickname}, St) ->
   say("~p (~p) is joining the room.", [Nickname, Pid]),
@@ -88,8 +98,8 @@ code_change(_OldVsn, St, _Extra) ->
   say("code_change ~p, ~p, ~p", [_OldVsn, St, _Extra]),
   {ok, St}.
  
-%% Some helper methods.
- 
+%% Some helper methods. 
+
 say(Format) ->
   say(Format, []).
 say(Format, Data) ->
