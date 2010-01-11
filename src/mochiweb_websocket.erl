@@ -78,7 +78,7 @@ check_header(Socket,Path,Headers,MyLoop) ->
       verify_handshake(Socket,Path,Headers),
       %% Set packet back to raw for the rest of the connection
       inet:setopts(Socket, [{packet, raw}]),
-      WriterPid = basic_writer:start_link(Socket),
+      WriterPid = client_writer:start_link(Socket),
       request(Socket,WriterPid,MyLoop);
     {ok, {http_header, _, Name, _, Value}} ->
       check_header(Socket, Path, [{Name, Value} | Headers],MyLoop);

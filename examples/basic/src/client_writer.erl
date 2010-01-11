@@ -1,4 +1,4 @@
--module(basic_writer).
+-module(client_writer).
 -compile(export_all).
  
 -behaviour(gen_server).
@@ -41,7 +41,19 @@ handle_call(state, _From, St) ->
 handle_call(_Request, _From, St) ->
   say("call ~p, ~p, ~p.", [_Request, _From, St]),
   {reply, ok, St}.
- 
+
+set_room_pid(Pid, RoomPid) ->
+  gen_server:cast(Pid, {set_room_pid, RoomPid}).
+
+message(Pid, Data) ->
+  gen_server:cast(Pid, {message, Data}).
+
+send_to_client(Pid, Data) ->
+  gen_server:cast(Pid, {send_to_client, Data}).
+
+leave(Pid) ->
+  gen_server:cast(Pid, leave).
+  
 handle_cast({set_room_pid, Pid}, St) ->
   % gen_server:cast(Pid, {join, self()}),
   {noreply, St#st{room = Pid}};
