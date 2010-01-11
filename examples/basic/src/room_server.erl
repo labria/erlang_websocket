@@ -7,7 +7,8 @@
 %% Public API
 -record(st,
   {name,
-  users}).
+  users,
+  logfile}).
 
 
 start(Name) ->
@@ -30,7 +31,8 @@ state() ->
 init(Name) ->
   say("init", []),
   Tab = ets:new(?MODULE, []),
-  {ok, #st{name=Name, users=Tab}}.
+  {ok,Log} = file:open("priv/www/logs/"++Name++".log", [append]),
+  {ok, #st{name=Name, users=Tab, logfile=Log}}.
  
  
 handle_call(stop, _From, St) ->
@@ -60,14 +62,14 @@ say(Pid, ClientPid, Msg) ->
 %% cast handling
 
 handle_cast({join, Pid, Nickname}, St) ->
-  say("~p (~p) is joining the room.", [Nickname, Pid]),
+  log_to_file("~s joined the room\n", [Nickname], St),
   ets:insert(St#st.users, {Pid, Nickname}),
   {noreply, St};
 
 handle_cast({leave, Pid}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
   ets:delete(St#st.users, Pid),
-  say("~p (~p) is leaving the room.", [Nick, Pid]),
+  log_to_file("~s left the room.\n", [Nick], St),
   Fun = fun({Client, _}, _) -> client_writer:send_to_client(Client, Nick ++ " left the room"), void end,
   ets:foldl(Fun, [], St#st.users),
   {noreply, St};
@@ -77,6 +79,7 @@ handle_cast({say, Pid, Msg}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
   Fun = fun({Client, _}, _) -> client_writer:send_to_client(Client, Nick ++ " : "++ Msg), void end,
   ets:foldl(Fun, [], St#st.users),
+  log_to_file("~s : ~s\n", [Nick, Msg], St),
   {noreply, St};
 
 
@@ -100,6 +103,13 @@ code_change(_OldVsn, St, _Extra) ->
   {ok, St}.
  
 %% Some helper methods. 
+
+log_to_file(Format, St) ->
+  log_to_file(Format, [], St).
+
+log_to_file(Format, Data, St) ->
+  say(Format, Data),
+  file:write(St#st.logfile, io_lib:format(Format, Data)).
 
 say(Format) ->
   say(Format, []).
