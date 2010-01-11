@@ -50,7 +50,7 @@ handle_cast({register_user, Pid, Room, Nick}, State) ->
   % send it back to the client handler
   room_server:join(RoomPid, Pid, Nick),
   % gen_server:cast(RoomPid, {join, Pid, Nick}),
-  gen_server:cast(Pid, {set_room_pid, RoomPid}),
+  client_writer:set_room_pid(Pid, RoomPid),
   {noreply, State};
 
 handle_cast(_Msg, State) ->

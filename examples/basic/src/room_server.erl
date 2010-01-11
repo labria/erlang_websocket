@@ -66,14 +66,14 @@ handle_cast({leave, Pid}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
   ets:delete(St#st.users, Pid),
   say("~p (~p) is leaving the room.", [Nick, Pid]),
-  Fun = fun({Client, _}, _) -> send_message(Client, Nick ++ " left the room"), void end,
+  Fun = fun({Client, _}, _) -> client_writer:send_to_client(Client, Nick ++ " left the room"), void end,
   ets:foldl(Fun, [], St#st.users),
   {noreply, St};
 
 
 handle_cast({say, Pid, Msg}, St) ->
   [{Pid, Nick}] = ets:lookup(St#st.users, Pid),
-  Fun = fun({Client, _}, _) -> send_message(Client, Nick ++ " : "++ Msg), void end,
+  Fun = fun({Client, _}, _) -> client_writer:send_to_client(Client, Nick ++ " : "++ Msg), void end,
   ets:foldl(Fun, [], St#st.users),
   % lists:foreach(Fun, St#st.clients),
   {noreply, St};
@@ -104,6 +104,3 @@ say(Format) ->
   say(Format, []).
 say(Format, Data) ->
   io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
-
-send_message(Client, Data) ->
-  gen_server:cast(Client,{send_to_client, Data}).
