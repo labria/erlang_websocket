@@ -51,34 +51,42 @@ enter_room(Req, Room) ->
   Nick = proplists:get_value(Room, Req:parse_cookie()),
   case Nick of 
     undefined ->
-       Req:respond({302, 
-                         [{"Location", "/rooms/join/" ++ Room}, 
-                          {"Content-Type", "text/html; charset=UTF-8"}], 
-                          ""});
+      Req:respond({302, 
+          [{"Location", "/rooms/join/" ++ Room}, 
+            {"Content-Type", "text/html; charset=UTF-8"}], 
+          ""});
     _ ->
       Req:ok({"text/html", "come in!"})
       % Req:ok({"text/html", erltl:render(Room)});
   end.  
 
 join_room(Req, Room) ->
-  % check cookie for room
-  % if found => redirect to room
-  ok.
+  Nick = proplists:get_value(Room, Req:parse_cookie()),
+  case Nick of 
+    undefined ->
+      Req:ok({"text/html", "log in, please!"});
+    _ ->
+      Req:respond({302, 
+          [{"Location", "/rooms/" ++ Room}, 
+            {"Content-Type", "text/html; charset=UTF-8"}], 
+          ""})
+  end. 
 
 join_room_post(Req, Room) ->
   % (check nickname?)
   Nick = proplists:get_value("nickname", Req:parse_post()),
   case Nick of
     undefined ->
-       Req:respond({302,  [{"Location", "/rooms/join/" ++ Room}, 
-                          {"Content-Type", "text/html; charset=UTF-8"}], 
-                           ""});
+      Req:respond({302,  
+          [{"Location", "/rooms/join/" ++ Room}, 
+            {"Content-Type", "text/html; charset=UTF-8"}], 
+          ""});
     _ ->
       H = mochiweb_cookies:cookie(Room, Nick, [{path, "/"}]),
       Req:respond({302,
-                         [{"Location", "/rooms/" ++ Room}, 
-                          {"Content-Type", "text/html; charset=UTF-8"}, H], 
-                          ""})
+          [{"Location", "/rooms/" ++ Room}, 
+            {"Content-Type", "text/html; charset=UTF-8"}, H], 
+          ""})
   end.
 
 get_option(Option, Options) ->
